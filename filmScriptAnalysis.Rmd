@@ -9,11 +9,76 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+
+## Packages Required
+
+```{r}
+#install.packages("tidytext")
+library(tidytext)
+#install.packages("dplyr")
+library(dplyr)
+#install.packages("ngram")
+library(ngram)
+```
+
+
 ## Loading scripts
 ```{r}
 KabhiDialogue = readxl::read_xlsx("filmScripts/Kabhi_Khushi_Kabhie_Gham_2001.xlsx")
+KabhiDialogue = KabhiDialogue[is.na(KabhiDialogue$Song),]
 sholayDialogue = readxl::read_xlsx("filmScripts/Sholay_1975.xlsx")
+sholayDialogue = sholayDialogue[is.na(sholayDialogue$Song),]
 ShreeDialogue =  readxl::read_xlsx("filmScripts/Shree_420_1955.xlsx")
+ShreeDialogue = ShreeDialogue[is.na(ShreeDialogue$Song),]
+```
+
+## Word Counts
+
+
+```{r}
+GenerateWordCounts = function(dataframe_in){
+  length_of_df = nrow(dataframe_in)
+  word_counts = rep(NA,length_of_df)
+  for(i in 1:length_of_df){
+    #print(strsplit(dataframe_in$Dialogue[i]," "))
+    #print(i)
+    numWords = length(unlist(strsplit(dataframe_in$Dialogue[i]," ")))
+    word_counts[i] = numWords
+  }
+  return(word_counts)
+}
+
+
+KabhiDialogue$`WordCount` = GenerateWordCounts(KabhiDialogue)
+sholayDialogue$`WordCount` = GenerateWordCounts(sholayDialogue)
+colnames(ShreeDialogue) = c("Character","Dialogue","Song")
+ShreeDialogue$`WordCount` = GenerateWordCounts(ShreeDialogue)
+```
+
+```{r}
+#install.packages("ggplot2")
+library(ggplot2)
+#install.packages("ggthemes") # Install 
+library(ggthemes) # Load
+#install.packages("plotly")
+library(plotly)
+
+
+generate_plotly = function(df){
+  characters = factor(df$Character)
+  word_count_by_characters = aggregate(df$WordCount, by=list(characters_list=characters), FUN=sum)
+  colnames(word_count_by_characters) = c("Characters", "WordCount")
+
+
+  plot = ggplot(word_count_by_characters, aes(x =  Characters, y = WordCount))+geom_bar(stat="identity")+theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+  p = ggplotly(plot)
+
+  return(p)
+}
+
+generate_plotly(ShreeDialogue)
+
 ```
 
 

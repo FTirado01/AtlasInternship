@@ -38,9 +38,10 @@ DirtyHarry1 = DirtyHarry1[is.na(DirtyHarry1$Song),]
 createDataframe = function(pathTofile){
   df = readxl::read_xlsx(pathTofile)
   colnames(df) = c("Character","Dialogue","Song")
-  df = df[is.na(df$Song)]
+  df = df[is.na(df$Song),]
   return(df)
 }
+#test  = createDataframe("filmScripts/Mission_Impossible_1996.xlsx")
 ```
 
 ## Word Counts

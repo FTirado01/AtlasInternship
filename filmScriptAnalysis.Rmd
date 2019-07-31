@@ -30,6 +30,17 @@ sholayDialogue = readxl::read_xlsx("filmScripts/Sholay_1975.xlsx")
 sholayDialogue = sholayDialogue[is.na(sholayDialogue$Song),]
 ShreeDialogue =  readxl::read_xlsx("filmScripts/Shree_420_1955.xlsx")
 ShreeDialogue = ShreeDialogue[is.na(ShreeDialogue$Song),]
+MissionImpossibleOne = readxl::read_xlsx("filmScripts/Mission_Impossible_1996.xlsx")
+MissionImpossibleOne = MissionImpossibleOne[is.na(MissionImpossibleOne$Song),] 
+DirtyHarry1 = readxl::read_xlsx("filmScripts/Dirty_Harry_1_1971.xlsx")
+DirtyHarry1 = DirtyHarry1[is.na(DirtyHarry1$Song),] 
+
+createDataframe = function(pathTofile){
+  df = readxl::read_xlsx(pathTofile)
+  colnames(df) = c("Character","Dialogue","Song")
+  df = df[is.na(df$Song)]
+  return(df)
+}
 ```
 
 ## Word Counts
@@ -49,10 +60,7 @@ GenerateWordCounts = function(dataframe_in){
 }
 
 
-KabhiDialogue$`WordCount` = GenerateWordCounts(KabhiDialogue)
-sholayDialogue$`WordCount` = GenerateWordCounts(sholayDialogue)
-colnames(ShreeDialogue) = c("Character","Dialogue","Song")
-ShreeDialogue$`WordCount` = GenerateWordCounts(ShreeDialogue)
+
 ```
 
 ```{r}
@@ -65,7 +73,9 @@ library(plotly)
 
 
 generate_plotly = function(df){
+  
   characters = factor(df$Character)
+  df$`WordCount` = GenerateWordCounts(df)
   word_count_by_characters = aggregate(df$WordCount, by=list(characters_list=characters), FUN=sum)
   colnames(word_count_by_characters) = c("Characters", "WordCount")
 
@@ -78,6 +88,10 @@ generate_plotly = function(df){
 }
 
 generate_plotly(ShreeDialogue)
+generate_plotly(MissionImpossibleOne)
+generate_plotly(sholayDialogue)
+generate_plotly(KabhiDialogue)
+generate_plotly(DirtyHarry1)
 
 ```
 

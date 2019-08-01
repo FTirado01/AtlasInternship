@@ -24,16 +24,6 @@ library(ngram)
 
 ## Loading scripts
 ```{r}
-KabhiDialogue = readxl::read_xlsx("filmScripts/Kabhi_Khushi_Kabhie_Gham_2001.xlsx")
-KabhiDialogue = KabhiDialogue[is.na(KabhiDialogue$Song),]
-sholayDialogue = readxl::read_xlsx("filmScripts/Sholay_1975.xlsx")
-sholayDialogue = sholayDialogue[is.na(sholayDialogue$Song),]
-ShreeDialogue =  readxl::read_xlsx("filmScripts/Shree_420_1955.xlsx")
-ShreeDialogue = ShreeDialogue[is.na(ShreeDialogue$Song),]
-MissionImpossibleOne = readxl::read_xlsx("filmScripts/Mission_Impossible_1996.xlsx")
-MissionImpossibleOne = MissionImpossibleOne[is.na(MissionImpossibleOne$Song),] 
-DirtyHarry1 = readxl::read_xlsx("filmScripts/Dirty_Harry_1_1971.xlsx")
-DirtyHarry1 = DirtyHarry1[is.na(DirtyHarry1$Song),] 
 
 createDataframe = function(pathTofile){
   df = readxl::read_xlsx(pathTofile)
@@ -46,9 +36,8 @@ createDataframe = function(pathTofile){
 
 ## Word Counts
 
-
 ```{r}
-GenerateWordCounts = function(dataframe_in){
+GenerateWordCounts = function(dataframe_in){#generates a vector of word counts for each line
   length_of_df = nrow(dataframe_in)
   word_counts = rep(NA,length_of_df)
   for(i in 1:length_of_df){
@@ -59,8 +48,6 @@ GenerateWordCounts = function(dataframe_in){
   }
   return(word_counts)
 }
-
-
 
 ```
 

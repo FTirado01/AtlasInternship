@@ -8,23 +8,36 @@ library(plotly)
 library("shinydashboard")
 #library(DT)
 
+file_list <- list.files("filmScripts/")
+
+for (file in file_list){
+  print(file)
+  # if the merged dataset doesn't exist, create it
+  if (!exists("dataset")){
+    dataset <- readxl::read_xlsx(paste0("filmScripts/",file))
+    dataset$Movie = str_remove_all(file,".xlsx")
+    names(dataset) = c("Character","Dialogue","Song","Movie")
+  }
+  
+  # if the merged dataset does exist, append to it
+  if (exists("dataset")){
+    temp_dataset <-readxl::read_xlsx(paste0("filmScripts/",file))
+    temp_dataset$Movie = str_remove_all(file,".xlsx")
+    names(temp_dataset) = c("Character","Dialogue","Song","Movie")
+    print("past")
+    dataset<-rbind(dataset, temp_dataset)
+    rm(temp_dataset)
+  }
+  
+}
+
+dataset$Movie = factor(dataset$Movie)
+dataset = dataset[is.na(dataset$Song),]
+
 movieTitles = list('Solo Films' = list("Kabhi Khushi Kabhie Gham 2001","Sholay 1975","Shree 420 1955"), 
                    'Mission Impossible Series' = list("Mission Impossible 1996", "Mission Impossible 2 2000", "Mission Impossible 3 2006","Mission Impossible Rogue Nation 2015","Mission Impossible Ghost Protocol 2011"),
                    'Dirty Harry Series' = list("Dirty Harry 1 1971")
-                )
-
-
-
-createDataframe = function(pathTofile){
-  df = readxl::read_xlsx(pathTofile)
-  colnames(df) = c("Character","Dialogue","Song")
-  df = df[is.na(df$Song),]
-  characters = factor(df$Character)
-  df$`WordCount` = GenerateWordCounts(df)
-  df = aggregate(df$WordCount, by=list(characters_list=characters), FUN=sum)
-  colnames(df) = c("Characters", "WordCount")
-  return(as.data.frame(df))
-}
+)
 
 GenerateWordCounts = function(dataframe_in){
   length_of_df = nrow(dataframe_in)
@@ -36,6 +49,17 @@ GenerateWordCounts = function(dataframe_in){
   return(word_counts)
 }
 
+dataset$'WordCount' = GenerateWordCounts(dataset)
+
+dataset_aggregated = dataset[,c('Character','Movie')]
+
+dataset_aggregated$WordCount = ave(dataset$WordCount,dataset_aggregated,FUN=sum)
+
+
+dataset_aggregated = dataset_aggregated[!duplicated(dataset_aggregated),]
+
+
+
 library(ggplot2)
 #install.packages("ggthemes") # Install 
 library(ggthemes) # Load
@@ -44,27 +68,45 @@ library(plotly)
 
 
 generate_plotly = function(df){
-  characters = df$Characters
-  word_count_by_characters = aggregate(df$WordCount, by=list(characters_list=characters), FUN=sum)
-  colnames(word_count_by_characters) = c("Characters", "WordCount")
 
-  plot = ggplot(word_count_by_characters, aes(x =  Characters, y = WordCount))+geom_bar(stat="identity")+theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+  plot = ggplot(df, aes(x =  Character, y = WordCount))+geom_bar(aes(colour = Movie),stat="identity")+theme(axis.text.x = element_text(angle = 90, hjust = 1))
   return(plot)
 }
 
 shinyApp(
   ui = fluidPage(
-    selectInput("variable", "Movie",choices = movieTitles
-    ),
-    #tableOutput("data"),
-    plotlyOutput("plot")
+    titlePanel("Dialogue in Cinema"),
+    sidebarPanel(
+      uiOutput("var1_select"),
+      actionButton(inputId = "update",                   
+                   label = "Render Graph"
+      )
+    ),mainPanel(
+      #tableOutput("data"),
+      plotlyOutput("plot")
+    )
+    
   ),
   server = function(input, output) {
-    output$data <- renderTable(
-      createDataframe(paste0("filmScripts/",str_replace_all(input$variable," ","_"),".xlsx"))
-    )
-    output$plot <- renderPlotly({
-      generate_plotly(createDataframe(paste0("filmScripts/",str_replace_all(input$variable," ","_"),".xlsx")))
+    
+    output$var1_select <- renderUI({
+      selectInput("variable", "Movie",choices = movieTitles, multiple = TRUE)
+      
     })
+    
+    active_dataset = 
+      eventReactive(input$update, { # Event Reactive
+        dataset_aggregated[dataset_aggregated$Movie %in% input$variable,]
+      })
+    
+    output$data <- renderTable(
+      active_dataset()
+    )
+    
+    output$plot <- renderPlotly(
+      generate_plotly(active_dataset())
+    )
+    
   }
 )

@@ -36,7 +36,8 @@ dataset = dataset[is.na(dataset$Song),]
 
 movieTitles = list('Solo Films' = list("Kabhi Khushi Kabhie Gham 2001","Sholay 1975","Shree 420 1955"), 
                    'Mission Impossible Series' = list("Mission Impossible 1996", "Mission Impossible 2 2000", "Mission Impossible 3 2006","Mission Impossible Rogue Nation 2015","Mission Impossible Ghost Protocol 2011"),
-                   'Dirty Harry Series' = list("Dirty Harry 1 1971")
+                   'Dirty Harry Series' = list("Dirty Harry 1 1971","Dirty Harry 2 Magnum Force 1973","Dirty Harry 3 The Enforcer 1976","Dirty Harry 4 Sudden Impact 1983","Dirty Harry 5 The Dead Pool 1988"),
+                   'Bond films' = list("From Russia With Love 1963","The World Is Not Enough 1999")
 )
 
 GenerateWordCounts = function(dataframe_in){
@@ -70,7 +71,7 @@ library(plotly)
 generate_plotly = function(df){
 
 
-  plot = ggplot(df, aes(x =  Character, y = WordCount))+geom_bar(aes(colour = Movie),stat="identity")+theme(axis.text.x = element_text(angle = 90, hjust = 1))
+  plot = ggplot(df, aes(x =  Character, y = WordCount))+geom_bar(aes(colour = Movie),stat="identity", position=position_dodge())+theme(axis.text.x = element_text(angle = 90, hjust = 1, size = 12))
   return(plot)
 }
 
@@ -84,7 +85,7 @@ shinyApp(
       )
     ),mainPanel(
       #tableOutput("data"),
-      plotlyOutput("plot")
+      plotlyOutput("plot", width = "125%")
     )
     
   ),

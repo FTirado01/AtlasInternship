@@ -1,13 +1,31 @@
+---
+title: "Movie Dialogue Analysis"
+output: html_document
+runtime: shiny
+margin: 2cm
+---
 
-#packages used in the app
-library(shiny)
+<style type="text/css">
+.main-container {
+  max-width: 1800px;
+  margin-left: auto;
+  margin-right: auto;
+}
+</style>
+
+```{r echo=FALSE, include=FALSE}
+
 library(dplyr)
 library(ggplot2)
 library(stringr)
 library(shinyWidgets)
 library(plotly)
 library("shinydashboard")
-#library(DT)
+library("tm")
+library("SnowballC")
+library("wordcloud")
+library("RColorBrewer")
+
 
 file_list <- list.files("filmScripts/")
 
@@ -60,15 +78,6 @@ dataset_aggregated$WordCount = ave(dataset$WordCount,dataset_aggregated,FUN=sum)
 
 dataset_aggregated = dataset_aggregated[!duplicated(dataset_aggregated),]
 
-
-
-library(ggplot2)
-#install.packages("ggthemes") # Install 
-library(ggthemes) # Load
-#install.packages("plotly")
-library(plotly)
-
-
 generate_plotly = function(df){
   
   size_of_df = nrow(df)
@@ -80,37 +89,78 @@ generate_plotly = function(df){
   return(ggplotly(plot, height = size_of_df*15,width = 800))
 }
 
+#this will be used for the word Cloud
+Movies = unlist(movieTitles)
+length_of_movie_list = length(Movies)
+script_list = list()
+
+for(i in 1:length_of_movie_list){
+  script_list[Movies[i]] = paste(dataset[dataset$Movie==Movies[i],"Dialogue"], collapse = "")
+}
+generate_word_cloud = function(script){
+  working_script = Corpus(VectorSource(script))
+  #inspect(working_script)
+  working_script <- tm_map(working_script, content_transformer(tolower))
+  
+  # Remove numbers
+  working_script <- tm_map(working_script, removeNumbers)
+  # Remove english common stopwords
+  working_script <- tm_map(working_script, removeWords, stopwords("english"))
+  # Remove your own stop word
+  # specify your stopwords as a character vector
+  
+  # Remove punctuations
+  working_script <- tm_map(working_script, removePunctuation)
+  # Eliminate extra white spaces
+  working_script <- tm_map(working_script, stripWhitespace)
+  # Text stemming
+  # working_script <- tm_map(working_script, stemDocument)
+  
+  dtm <- TermDocumentMatrix(working_script)
+  m <- as.matrix(dtm)
+  v <- sort(rowSums(m),decreasing=TRUE)
+  d <- data.frame(word = names(v),freq=v)
+  set.seed(1234)
+  wordcloud(words = d$word, freq = d$freq, min.freq = 1,
+            max.words=50, random.order=FALSE, rot.per=0.35, 
+            colors=brewer.pal(8, "Dark2"))
+}
+
+
+```
+
+
+```{r app, echo=FALSE, message=FALSE}
+
+#packages used in the app
+library(shiny)
+
+#library(DT)
+
+
+
 shinyApp(
   ui = fluidPage(
     titlePanel("Dialogue in Cinema"),
     sidebarPanel(
-      tags$head(tags$script('
-                                var dimension = [0, 0];
-                                $(document).on("shiny:connected", function(e) {
-                                    dimension[0] = window.innerWidth;
-                                    dimension[1] = window.innerHeight;
-                                    Shiny.onInputChange("dimension", dimension);
-                                });
-                                $(window).resize(function(e) {
-                                    dimension[0] = window.innerWidth;
-                                    dimension[1] = window.innerHeight;
-                                    Shiny.onInputChange("dimension", dimension);
-                                });
-                            ')),
       uiOutput("var1_select"),
       actionButton(inputId = "update",                   
                    label = "Render Graph"
       )
     ),mainPanel(
-      #tableOutput("data"),
-      plotlyOutput("plot")
+      tabsetPanel(type = "tabs",
+                  tabPanel("Plot", plotlyOutput("plot")),
+                  tabPanel("Word Cloud", plotOutput("wordCloud", height = 600, width = 600))
+                  )
+
+      
     )
     
   ),
   server = function(input, output) {
     
-    output$var1_select <- renderUI({
-      selectInput("variable", "Movie",choices = movieTitles, multiple = TRUE)
+    output$var1_select <- renderUI({#add multiple = TRUE to include multiple movies
+      selectInput("variable", "Movie",choices = movieTitles, selected = "Mission Impossible 1996")
       
     })
     
@@ -127,7 +177,15 @@ shinyApp(
       generate_plotly(active_dataset())
     )
     
-  }
+    output$wordCloud = renderPlot(
+      generate_word_cloud(script_list[[input$variable]])
+    )
+    
+  },
+  options = list(width = 1300,height = 800)
 )
 
 
+
+
+```

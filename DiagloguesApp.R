@@ -128,7 +128,7 @@ generate_word_freq_graph = function(script,n = 30){
     xlab("Word")
   ggplotly(p)
 }
-
+ 
 generate_sentiment_graph= function(df,n=30){
   bing = get_sentiments("bing")
   word_freq_table = generate_word_frequency_table(df)

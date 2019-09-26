@@ -50,8 +50,10 @@ for (file in file_list){
   
 }
 
+
 dataset$Movie = factor(dataset$Movie)
 dataset = dataset[is.na(dataset$Song),]
+
 
 movieTitles = list('Solo Films' = list("Kabhi Khushi Kabhie Gham 2001","Sholay 1975","Shree 420 1955"), 
                    'Mission Impossible Series' = list("Mission Impossible 1996", "Mission Impossible 2 2000", "Mission Impossible 3 2006","Mission Impossible Rogue Nation 2015","Mission Impossible Ghost Protocol 2011"),
@@ -124,6 +126,10 @@ generate_word_cloud = function(script){
   wordcloud(words = d$word, freq = d$freq, min.freq = 1,
             max.words=50, random.order=FALSE, rot.per=0.35, 
             colors=brewer.pal(8, "Dark2"))
+}
+
+generate_sentiment_plot = function(word_freq_table){
+  
 }
 
 

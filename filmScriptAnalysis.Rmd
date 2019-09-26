@@ -75,11 +75,11 @@ generate_plotly = function(df){
   return(p)
 }
 
-generate_plotly(ShreeDialogue)
-generate_plotly(MissionImpossibleOne)
-generate_plotly(sholayDialogue)
-generate_plotly(KabhiDialogue)
-generate_plotly(DirtyHarry1)
+#generate_plotly(ShreeDialogue)
+#generate_plotly(MissionImpossibleOne)
+#generate_plotly(sholayDialogue)
+#generate_plotly(KabhiDialogue)
+#generate_plotly(DirtyHarry1)
 
 ```
 

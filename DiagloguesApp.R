@@ -63,8 +63,8 @@ dataset_aggregated$WordCount = ave(dataset$WordCount,dataset_aggregated,FUN=sum)
 dataset_aggregated = na.omit(dataset_aggregated[!duplicated(dataset_aggregated),])
 
 
-generate_plotly = function(df){
-  #size_of_df = nrow(df)
+generate_plotly = function(df=dataset_aggregated[dataset_aggregated$Movie=="Mission Impossible 1996",]){
+  size_of_df = nrow(df)
   percentages = df$WordCount / sum(df$WordCount) * 100
   plot = ggplot(df, aes(x =  reorder(Character, WordCount), y = percentages))+
     geom_bar(stat="identity",fill="steelblue", position = position_dodge(width = 0.8),width = 0.5)+
@@ -73,7 +73,7 @@ generate_plotly = function(df){
     ggtitle("Words Spoken by each Character")+
     xlab("Character")+
     ylab("Percentage of Words Spoken")
-  return(ggplotly(plot, height = 1000,width =850))
+  return(ggplotly(plot, height = size_of_df*26,width =800))
 }
 
 #this will be used for the word Cloud
@@ -208,7 +208,7 @@ shinyApp(
     )
     
   },
-  options = list(width = 1300,height = 700)
+  options = list(width = 1300,height = 800)
 )
 
 
